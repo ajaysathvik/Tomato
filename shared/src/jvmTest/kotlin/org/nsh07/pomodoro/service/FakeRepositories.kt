@@ -53,6 +53,20 @@ class FakeStatRepository : StatRepository {
 
     override fun getTodayStat(): Flow<Stat?> = flowOf(null)
 
+    override fun getThisWeekStat(): Flow<Stat?> = flowOf(
+        if (focusTime > 0 || breakTime > 0) {
+            Stat(
+                date = LocalDate.now(),
+                topicId = Stat.MERGED_TOPIC_ID,
+                focusTimeQ1 = focusTime,
+                focusTimeQ2 = 0,
+                focusTimeQ3 = 0,
+                focusTimeQ4 = 0,
+                breakTime = breakTime
+            )
+        } else null
+    )
+
     override fun getLastNDaysStats(n: Int): Flow<List<Stat>> = flowOf(emptyList())
 
     override fun getLastNDaysAverageFocusTimes(n: Int): Flow<StatTime?> = flowOf(null)

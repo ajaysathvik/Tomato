@@ -21,12 +21,25 @@ import androidx.annotation.ChecksSdkIntAtLeast
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-fun millisecondsToStr(t: Long): String {
+fun millisecondsToStr(t: Long, forceHours: Boolean = false): String {
+    val clamped = t.coerceAtLeast(0L)
+    if (forceHours) {
+        val hours = TimeUnit.MILLISECONDS.toHours(clamped)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(clamped) % TimeUnit.HOURS.toMinutes(1)
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(clamped) % TimeUnit.MINUTES.toSeconds(1)
+        return String.format(
+            Locale.getDefault(),
+            "%02d:%02d:%02d",
+            hours,
+            minutes,
+            seconds
+        )
+    }
     return String.format(
         Locale.getDefault(),
         "%02d:%02d",
-        TimeUnit.MILLISECONDS.toMinutes(t),
-        TimeUnit.MILLISECONDS.toSeconds(t) % TimeUnit.MINUTES.toSeconds(1)
+        TimeUnit.MILLISECONDS.toMinutes(clamped),
+        TimeUnit.MILLISECONDS.toSeconds(clamped) % TimeUnit.MINUTES.toSeconds(1)
     )
 }
 

@@ -147,6 +147,10 @@ import tomato.shared.generated.resources.timer_settings_reset_info
 import tomato.shared.generated.resources.topic_settings
 import tomato.shared.generated.resources.undo
 import tomato.shared.generated.resources.up_next
+import tomato.shared.generated.resources.hours_and_minutes_format
+import tomato.shared.generated.resources.this_week_focus
+import tomato.shared.generated.resources.this_week_focus_with_goal
+import org.nsh07.pomodoro.utils.millisecondsToHoursMinutes
 
 @Composable
 fun SharedTransitionScope.TimerMainPane(
@@ -158,6 +162,8 @@ fun SharedTransitionScope.TimerMainPane(
     onAction: (TimerAction) -> Unit,
     onAddTopic: () -> Unit,
     onOpenTopicSettings: () -> Unit,
+    thisWeekFocusTime: Long = 0L,
+    weeklyFocusGoal: Long = 0L,
     modifier: Modifier = Modifier
 ) {
     val isPlus = LocalIsPlus.current
@@ -183,9 +189,17 @@ fun SharedTransitionScope.TimerMainPane(
 
     val clockFontSize by animateFloatAsState(
         targetValue = if (!timerState.infiniteFocus) {
-            if (timerState.timeStr.length < 6) 72f else 64f
+            when {
+                timerState.timeStr.length >= 8 -> 56f
+                timerState.timeStr.length < 6 -> 72f
+                else -> 64f
+            }
         } else {
-            if (timerState.timeStr.length < 6) 100f else 88f
+            when {
+                timerState.timeStr.length >= 8 -> 76f
+                timerState.timeStr.length < 6 -> 100f
+                else -> 88f
+            }
         },
         animationSpec = motionScheme.defaultSpatialSpec()
     )
@@ -485,16 +499,46 @@ fun SharedTransitionScope.TimerMainPane(
                                 exit = fadeOut(motionScheme.defaultEffectsSpec()) +
                                         shrinkVertically(motionScheme.defaultSpatialSpec())
                             ) {
-                                Text(
-                                    stringResource(
-                                        Res.string.timer_session_count,
-                                        timerState.currentFocusCount,
-                                        timerState.totalFocusCount
-                                    ),
-                                    fontFamily = typography.bodyLarge.fontFamily,
-                                    style = typography.titleLarge,
-                                    color = colorScheme.outline
-                                )
+                                Column(
+                                    horizontalAlignment = CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Text(
+                                        stringResource(
+                                            Res.string.timer_session_count,
+                                            timerState.currentFocusCount,
+                                            timerState.totalFocusCount
+                                        ),
+                                        fontFamily = typography.bodyLarge.fontFamily,
+                                        style = typography.titleLarge,
+                                        color = colorScheme.outline
+                                    )
+                                    val hmf = stringResource(Res.string.hours_and_minutes_format)
+                                    val formattedWeekTime = remember(thisWeekFocusTime, hmf) {
+                                        millisecondsToHoursMinutes(thisWeekFocusTime, hmf)
+                                    }
+                                    val weeklyText = if (weeklyFocusGoal > 0) {
+                                        val formattedGoal = remember(weeklyFocusGoal, hmf) {
+                                            millisecondsToHoursMinutes(weeklyFocusGoal, hmf)
+                                        }
+                                        stringResource(
+                                            Res.string.this_week_focus_with_goal,
+                                            formattedWeekTime,
+                                            formattedGoal
+                                        )
+                                    } else {
+                                        stringResource(
+                                            Res.string.this_week_focus,
+                                            formattedWeekTime
+                                        )
+                                    }
+                                    Text(
+                                        weeklyText,
+                                        fontFamily = typography.bodyLarge.fontFamily,
+                                        style = typography.labelMedium,
+                                        color = colorScheme.outline.copy(alpha = 0.8f)
+                                    )
+                                }
                             }
                         }
                     }

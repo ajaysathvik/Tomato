@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
@@ -66,6 +67,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.nsh07.pomodoro.data.Topic
 import org.nsh07.pomodoro.data.Topic.Companion.defaultTopic
 import org.nsh07.pomodoro.ui.SliderTickHaptics
+import org.nsh07.pomodoro.ui.performSegmentTick
 import org.nsh07.pomodoro.ui.performToggle
 import org.nsh07.pomodoro.ui.rememberRequestDndPermissionCallback
 import org.nsh07.pomodoro.ui.settingsScreen.SettingsSwitchItem
@@ -92,8 +94,12 @@ import tomato.shared.generated.resources.dnd
 import tomato.shared.generated.resources.dnd_desc
 import tomato.shared.generated.resources.edit_topic_desc
 import tomato.shared.generated.resources.focus
+import tomato.shared.generated.resources.focus_hours
+import tomato.shared.generated.resources.focus_minutes
+import tomato.shared.generated.resources.hours
 import tomato.shared.generated.resources.info
 import tomato.shared.generated.resources.long_break
+import tomato.shared.generated.resources.minutes
 import tomato.shared.generated.resources.session_length
 import tomato.shared.generated.resources.session_length_desc
 import tomato.shared.generated.resources.settings_infinite_focus_tip
@@ -186,6 +192,7 @@ fun TopicTimerSettings(
             showColorShapeSheet = showColorShapeSheet,
             minuteInputs = minuteInputs,
             onMinuteInputsChange = { onAction(SettingsAction.SetEditingTopicMinutes(it)) },
+            onHoursModeChange = { onAction(SettingsAction.SaveShowHoursFormat(it)) },
             sessionsSliderState = sessionsSliderState,
             onAutostartNextSessionChange = {
                 onAction(SettingsAction.SaveAutostartNextSession(it))
@@ -241,10 +248,12 @@ fun TopicTimerProperties(
     showDeleteDialog: Boolean = false,
     onShowColorShapeSheet: (Boolean) -> Unit = {},
     setShowDeleteDialog: (Boolean) -> Unit = {},
-    showEditButtons: Boolean = true
+    showEditButtons: Boolean = true,
+    onHoursModeChange: ((Boolean) -> Unit)? = null
 ) {
     val requestDndPermissionCallback = rememberRequestDndPermissionCallback()
     val haptic = LocalHapticFeedback.current
+    val colorScheme = colorScheme
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -252,31 +261,137 @@ fun TopicTimerProperties(
     ) {
         Row(
             horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val toggleColors = ToggleButtonDefaults.colors(
+                containerColor = listItemColors.containerColor,
+                checkedContainerColor = colorScheme.secondaryContainer,
+                checkedContentColor = colorScheme.onSecondaryContainer
+            )
+            ToggleButton(
+                checked = !minuteInputs.isHoursMode,
+                onCheckedChange = {
+                    if (minuteInputs.isHoursMode) {
+                        haptic.performSegmentTick()
+                        val totalMinutes = (minuteInputs.focusHours.toLongOrNull() ?: 0L) * 60L +
+                                (minuteInputs.focusMinutes.toLongOrNull() ?: 0L)
+                        val newMinutes = if (totalMinutes > 0) totalMinutes.toString() else minuteInputs.focus
+                        onMinuteInputsChange(
+                            minuteInputs.copy(
+                                isHoursMode = false,
+                                focus = newMinutes
+                            )
+                        )
+                        onHoursModeChange?.invoke(false)
+                    }
+                },
+                enabled = !topicRunning,
+                shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                colors = toggleColors
+            ) {
+                Text(stringResource(Res.string.minutes))
+            }
+            ToggleButton(
+                checked = minuteInputs.isHoursMode,
+                onCheckedChange = {
+                    if (!minuteInputs.isHoursMode) {
+                        haptic.performSegmentTick()
+                        val totalMin = minuteInputs.focus.toLongOrNull() ?: 0L
+                        val h = totalMin / 60L
+                        val m = totalMin % 60L
+                        onMinuteInputsChange(
+                            minuteInputs.copy(
+                                isHoursMode = true,
+                                focusHours = if (h > 0) h.toString() else "",
+                                focusMinutes = if (totalMin > 0) m.toString() else ""
+                            )
+                        )
+                        onHoursModeChange?.invoke(true)
+                    }
+                },
+                enabled = !topicRunning,
+                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                colors = toggleColors
+            ) {
+                Text(stringResource(Res.string.hours))
+            }
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    stringResource(Res.string.focus),
-                    style = typography.titleSmallEmphasized
-                )
-                MinuteInputField(
-                    minutes = minuteInputs.focus,
-                    onMinutesChange = { onMinuteInputsChange(minuteInputs.copy(focus = it)) },
-                    enabled = !topicRunning,
-                    shape = RoundedCornerShape(
-                        topStart = topListItemShape.topStart,
-                        bottomStart = topListItemShape.topStart,
-                        topEnd = topListItemShape.bottomStart,
-                        bottomEnd = topListItemShape.bottomStart
-                    ),
-                    maxDigits = 3,
-                    imeAction = ImeAction.Next
-                )
+            if (!minuteInputs.isHoursMode) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        stringResource(Res.string.focus),
+                        style = typography.titleSmallEmphasized
+                    )
+                    MinuteInputField(
+                        minutes = minuteInputs.focus,
+                        onMinutesChange = { onMinuteInputsChange(minuteInputs.copy(focus = it)) },
+                        enabled = !topicRunning,
+                        shape = RoundedCornerShape(
+                            topStart = topListItemShape.topStart,
+                            bottomStart = topListItemShape.topStart,
+                            topEnd = topListItemShape.bottomStart,
+                            bottomEnd = topListItemShape.bottomStart
+                        ),
+                        maxDigits = 3,
+                        imeAction = ImeAction.Next
+                    )
+                }
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        stringResource(Res.string.focus_hours),
+                        style = typography.titleSmallEmphasized
+                    )
+                    MinuteInputField(
+                        minutes = minuteInputs.focusHours,
+                        onMinutesChange = { onMinuteInputsChange(minuteInputs.copy(focusHours = it)) },
+                        enabled = !topicRunning,
+                        shape = RoundedCornerShape(
+                            topStart = topListItemShape.topStart,
+                            bottomStart = topListItemShape.topStart,
+                            topEnd = topListItemShape.bottomStart,
+                            bottomEnd = topListItemShape.bottomStart
+                        ),
+                        maxDigits = 2,
+                        isValid = minuteInputs.isValidFocusInput(),
+                        placeholder = "0",
+                        imeAction = ImeAction.Next
+                    )
+                }
+                Spacer(Modifier.width(2.dp))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        stringResource(Res.string.focus_minutes),
+                        style = typography.titleSmallEmphasized
+                    )
+                    MinuteInputField(
+                        minutes = minuteInputs.focusMinutes,
+                        onMinutesChange = { onMinuteInputsChange(minuteInputs.copy(focusMinutes = it)) },
+                        enabled = !topicRunning,
+                        shape = RoundedCornerShape(middleListItemShape.topStart),
+                        maxDigits = 2,
+                        isValid = minuteInputs.isValidFocusInput(),
+                        placeholder = "0",
+                        imeAction = ImeAction.Next
+                    )
+                }
             }
             Spacer(Modifier.width(2.dp))
             Column(

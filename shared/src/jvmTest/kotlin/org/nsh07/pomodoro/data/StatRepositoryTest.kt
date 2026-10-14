@@ -18,10 +18,12 @@
 package org.nsh07.pomodoro.data
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /** Tests for [AppStatRepository], which records a session against today's row for one topic. */
 class StatRepositoryTest : DatabaseTest() {
@@ -82,5 +84,31 @@ class StatRepositoryTest : DatabaseTest() {
         val today = topicDao.getStats(work.id).single()
         assertEquals(0L, today.totalFocusTime())
         assertEquals(500L, today.breakTime)
+    }
+
+    @Test
+    fun `getThisWeekStat accumulates current week and resets on Sunday`(): Unit = runBlocking {
+        val work = insertTopic("Work")
+        val today = LocalDate.now()
+        val daysSinceSunday = (today.dayOfWeek.value % 7).toLong()
+        val startOfWeek = today.minusDays(daysSinceSunday)
+        val priorToSunday = startOfWeek.minusDays(1)
+
+        // Stat before Sunday (previous week)
+        statDao.insertStat(Stat(priorToSunday, work.id, 9999, 0, 0, 0, 100))
+
+        // Stat on Sunday (start of current week)
+        statDao.insertStat(Stat(startOfWeek, work.id, 2000, 0, 0, 0, 50))
+
+        // Stat today (if today != startOfWeek, insert today as well)
+        if (today != startOfWeek) {
+            statDao.insertStat(Stat(today, work.id, 3000, 0, 0, 0, 75))
+        }
+
+        val weekStat = assertNotNull(repository.getThisWeekStat().first())
+        val expectedFocus = if (today != startOfWeek) 5000L else 2000L
+        val expectedBreak = if (today != startOfWeek) 125L else 50L
+        assertEquals(expectedFocus, weekStat.totalFocusTime())
+        assertEquals(expectedBreak, weekStat.breakTime)
     }
 }

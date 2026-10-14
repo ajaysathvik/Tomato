@@ -138,6 +138,16 @@
     <string name="vibrate_desc">Vibrate when a timer completes</string>
     <string name="vibration_strength">Strength</string>
     <string name="daily_focus_goal">Daily focus goal</string>
+    <string name="weekly_focus_goal">Weekly focus goal</string>
+    <string name="this_week">This week</string>
+    <string name="this_week_focus">%1$s this week</string>
+    <string name="this_week_focus_with_goal">%1$s / %2$s this week</string>
+    <string name="minutes">Minutes</string>
+    <string name="hours">Hours</string>
+    <string name="focus_hours">Focus (h)</string>
+    <string name="focus_minutes">Focus (m)</string>
+    <string name="hours_format_setting">Hours format</string>
+    <string name="hours_format_setting_desc">Display timer countdown and durations in hours (hh:mm:ss)</string>
     <string name="milliseconds_format">%1$dms</string>
     <string name="backup_and_restore">Backup and restore</string>
     <string name="backup">Backup</string>

@@ -112,10 +112,14 @@ import tomato.shared.generated.resources.arrow_back
 import tomato.shared.generated.resources.back
 import tomato.shared.generated.resources.check
 import tomato.shared.generated.resources.clear
+import tomato.shared.generated.resources.clocks
 import tomato.shared.generated.resources.create_new_topic
 import tomato.shared.generated.resources.daily_focus_goal
+import tomato.shared.generated.resources.weekly_focus_goal
 import tomato.shared.generated.resources.flag
 import tomato.shared.generated.resources.hours_and_minutes_format
+import tomato.shared.generated.resources.hours_format_setting
+import tomato.shared.generated.resources.hours_format_setting_desc
 import tomato.shared.generated.resources.info
 import tomato.shared.generated.resources.mobile_lock_portrait
 import tomato.shared.generated.resources.pomodoro_info
@@ -307,9 +311,9 @@ fun TimerSettings(
                         val hmf = stringResource(Res.string.hours_and_minutes_format)
                         SliderListItem(
                             value = settingsState.focusGoal.toFloat(),
-                            valueRange = 0f..16 * 60 * 60 * 1000f,
+                            valueRange = 0f..70 * 60 * 60 * 1000f,
                             enabled = true,
-                            label = stringResource(Res.string.daily_focus_goal),
+                            label = stringResource(Res.string.weekly_focus_goal),
                             trailingLabel = { millisecondsToHoursMinutes(it.toLong(), hmf) },
                             icon = { Icon(painterResource(Res.drawable.flag), null) },
                             shape = shapes.large
@@ -318,6 +322,48 @@ fun TimerSettings(
                                 onAction(SettingsAction.SaveFocusGoal(this - (this % (30 * 60 * 1000))))
                             }
                         }
+                    }
+                    item { Spacer(Modifier.height(12.dp)) }
+
+                    item {
+                        ListItem(
+                            leadingContent = {
+                                Icon(
+                                    painterResource(Res.drawable.clocks),
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            },
+                            headlineContent = { Text(stringResource(Res.string.hours_format_setting)) },
+                            supportingContent = { Text(stringResource(Res.string.hours_format_setting_desc)) },
+                            trailingContent = {
+                                Switch(
+                                    checked = settingsState.showHoursFormat,
+                                    onCheckedChange = {
+                                        haptic.performToggle(it)
+                                        onAction(SettingsAction.SaveShowHoursFormat(it))
+                                    },
+                                    thumbContent = {
+                                        if (settingsState.showHoursFormat) {
+                                            Icon(
+                                                painter = painterResource(Res.drawable.check),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                                            )
+                                        } else {
+                                            Icon(
+                                                painter = painterResource(Res.drawable.clear),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                                            )
+                                        }
+                                    },
+                                    colors = switchColors
+                                )
+                            },
+                            colors = listItemColors,
+                            modifier = Modifier.clip(cardShape)
+                        )
                     }
                     item { Spacer(Modifier.height(12.dp)) }
 

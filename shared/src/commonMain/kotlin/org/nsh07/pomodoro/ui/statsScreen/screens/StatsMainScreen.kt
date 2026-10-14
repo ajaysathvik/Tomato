@@ -37,6 +37,7 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -106,6 +107,7 @@ fun SharedTransitionScope.StatsMainScreen(
     lastYearSummaryChartModelProducer: CartesianChartModelProducer,
     lastYearSummaryChartXLabelKey: ExtraStore.Key<List<String>>,
     todayStat: Stat?,
+    thisWeekStat: Stat?,
     allTimeTotalFocus: Long?,
     lastWeekAverageFocusTimes: List<Long>,
     lastMonthAverageFocusTimes: List<Long>,
@@ -175,7 +177,7 @@ fun SharedTransitionScope.StatsMainScreen(
 
             item {
                 Text(
-                    stringResource(Res.string.today),
+                    stringResource(Res.string.last_week),
                     style = typography.titleLarge,
                     fontFamily = topBarTitleFont,
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -201,9 +203,9 @@ fun SharedTransitionScope.StatsMainScreen(
                                 color = colorScheme.onPrimaryContainer
                             )
                             Text(
-                                remember(todayStat) {
+                                remember(thisWeekStat) {
                                     millisecondsToHoursMinutes(
-                                        todayStat?.totalFocusTime() ?: 0,
+                                        thisWeekStat?.totalFocusTime() ?: 0,
                                         hoursMinutesFormat
                                     )
                                 },
@@ -212,6 +214,30 @@ fun SharedTransitionScope.StatsMainScreen(
                                 maxLines = 1,
                                 autoSize = TextAutoSize.StepBased(maxFontSize = typography.displaySmall.fontSize)
                             )
+                            if (todayStat != null && todayStat.totalFocusTime() > 0) {
+                                Text(
+                                    stringResource(Res.string.today) + ": " + millisecondsToHoursMinutes(
+                                        todayStat.totalFocusTime(),
+                                        hoursMinutesFormat
+                                    ),
+                                    style = typography.labelMedium,
+                                    color = colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                            if (goal > 0) {
+                                val weeklyFocus = thisWeekStat?.totalFocusTime() ?: 0L
+                                val progress = (weeklyFocus.toFloat() / goal).coerceIn(0f, 1f)
+                                Spacer(Modifier.height(8.dp))
+                                LinearProgressIndicator(
+                                    progress = { progress },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(shapes.small),
+                                    color = colorScheme.primary,
+                                    trackColor = colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
+                                )
+                            }
                         }
                     }
                     Spacer(Modifier.width(8.dp))
@@ -230,9 +256,9 @@ fun SharedTransitionScope.StatsMainScreen(
                                 color = colorScheme.onTertiaryContainer
                             )
                             Text(
-                                remember(todayStat) {
+                                remember(thisWeekStat) {
                                     millisecondsToHoursMinutes(
-                                        todayStat?.breakTime ?: 0,
+                                        thisWeekStat?.breakTime ?: 0,
                                         hoursMinutesFormat
                                     )
                                 },
@@ -241,6 +267,17 @@ fun SharedTransitionScope.StatsMainScreen(
                                 maxLines = 1,
                                 autoSize = TextAutoSize.StepBased(maxFontSize = typography.displaySmall.fontSize)
                             )
+                            if (todayStat != null && todayStat.breakTime > 0) {
+                                Text(
+                                    stringResource(Res.string.today) + ": " + millisecondsToHoursMinutes(
+                                        todayStat.breakTime,
+                                        hoursMinutesFormat
+                                    ),
+                                    style = typography.labelMedium,
+                                    color = colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -332,7 +369,7 @@ fun SharedTransitionScope.StatsMainScreen(
                                     context.model.extraStore[lastWeekSummaryChartXLabelKey][x.toInt()]
                                 }
                             },
-                            goal = goal,
+                            goal = if (goal > 0) goal / 7L else 0L,
                             zoomState = zoomStates[0],
                             scrollState = scrollStates[0],
                             modifier = if (!widthExpanded) {
@@ -439,7 +476,7 @@ fun SharedTransitionScope.StatsMainScreen(
                                     context.model.extraStore[lastMonthSummaryChartXLabelKey][x.toInt()]
                                 }
                             },
-                            goal = goal,
+                            goal = if (goal > 0) goal / 7L else 0L,
                             zoomState = zoomStates[1],
                             scrollState = scrollStates[1],
                             modifier = if (!widthExpanded) {

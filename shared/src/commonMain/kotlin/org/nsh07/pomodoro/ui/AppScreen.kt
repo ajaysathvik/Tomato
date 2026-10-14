@@ -339,12 +339,16 @@ fun AppScreen(
                                 )
                             }
 
+                            val thisWeekStat by timerViewModel.thisWeekStat.collectAsStateWithLifecycle()
+
                             TimerScreen(
                                 timerState = uiState,
                                 topics = topics,
                                 currentTopic = currentTopic,
                                 contentPadding = contentPadding,
                                 progress = { progress },
+                                thisWeekFocusTime = thisWeekStat?.totalFocusTime() ?: 0L,
+                                weeklyFocusGoal = settingsState.focusGoal,
                                 onAction = timerViewModel::onAction,
                                 onAddTopic = { showCreateTopicSheet = true },
                                 onOpenTopicSettings = {

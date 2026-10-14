@@ -126,6 +126,7 @@ fun StatsScreenRoot(
                         )
                     ) {
                         val todayStat by viewModel.todayStat.collectAsStateWithLifecycle(null)
+                        val thisWeekStat by viewModel.thisWeekStat.collectAsStateWithLifecycle(null)
                         val allTimeTotalFocus by
                         viewModel.allTimeTotalFocus.collectAsStateWithLifecycle(null)
 
@@ -144,6 +145,7 @@ fun StatsScreenRoot(
                             lastYearSummaryChartModelProducer = viewModel.lastYearChartProducer,
                             lastYearSummaryChartXLabelKey = viewModel.lastYearXLabelKey,
                             todayStat = todayStat,
+                            thisWeekStat = thisWeekStat,
                             allTimeTotalFocus = allTimeTotalFocus,
                             lastWeekAverageFocusTimes = lastWeekFocusBreakdownValues.first,
                             lastMonthAverageFocusTimes = lastMonthFocusBreakdownValues.first,

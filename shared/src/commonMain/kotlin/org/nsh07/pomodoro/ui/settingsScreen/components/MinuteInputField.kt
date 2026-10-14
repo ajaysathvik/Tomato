@@ -57,6 +57,8 @@ fun MinuteInputField(
     shape: Shape,
     modifier: Modifier = Modifier,
     maxDigits: Int = 2,
+    isValid: Boolean = minutes.isValidMinutesInput(),
+    placeholder: String = "",
     imeAction: ImeAction = ImeAction.Next
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -67,7 +69,7 @@ fun MinuteInputField(
     val spatialSpec = motionScheme.defaultSpatialSpec<Float>()
     val containerColor by animateColorAsState(
         when {
-            !minutes.isValidMinutesInput() -> colorScheme.errorContainer
+            !isValid -> colorScheme.errorContainer
             styleState.isFocused -> colorScheme.primaryContainer
             else -> listItemColors.containerColor
         },
@@ -75,7 +77,7 @@ fun MinuteInputField(
     )
     val textColor by animateColorAsState(
         when {
-            !minutes.isValidMinutesInput() -> colorScheme.onErrorContainer
+            !isValid -> colorScheme.onErrorContainer
             !enabled -> colorScheme.outlineVariant
             styleState.isFocused -> colorScheme.onPrimaryContainer
             else -> colorScheme.onSurfaceVariant
@@ -119,7 +121,22 @@ fun MinuteInputField(
                         background(containerColor)
                         focused { animate(spatialSpec) { shape(RoundedCornerShape(28.dp)) } }
                     }
-            ) { innerTextField() }
+            ) {
+                if (minutes.isEmpty() && placeholder.isNotEmpty()) {
+                    androidx.compose.material3.Text(
+                        text = placeholder,
+                        style = TextStyle(
+                            fontFamily = typography.bodyLarge.fontFamily,
+                            fontSize = 56.sp,
+                            lineHeight = 64.sp,
+                            letterSpacing = (-1).sp,
+                            color = textColor.copy(alpha = 0.38f),
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
+                innerTextField()
+            }
         }
     )
 }

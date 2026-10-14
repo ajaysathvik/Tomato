@@ -209,4 +209,23 @@ class StatDaoTest : DatabaseTest() {
 
         assertEquals(15L, average.focusTimeQ1)
     }
+
+    @Test
+    fun `getStatsBetween returns rows within date range`(): Unit = runBlocking {
+        val work = insertTopic("Work")
+
+        statDao.insertStat(stat("2026-03-10", work.id, 5, 0, 0, 0, 1))
+        statDao.insertStat(stat("2026-03-12", work.id, 10, 0, 0, 0, 2))
+        statDao.insertStat(stat("2026-03-14", work.id, 15, 0, 0, 0, 3))
+        statDao.insertStat(stat("2026-03-16", work.id, 20, 0, 0, 0, 4))
+
+        val result = statDao.getStatsBetween(
+            LocalDate.parse("2026-03-12"),
+            LocalDate.parse("2026-03-14")
+        ).first()
+
+        assertEquals(2, result.size)
+        assertEquals(10L, result[0].focusTimeQ1)
+        assertEquals(15L, result[1].focusTimeQ1)
+    }
 }

@@ -57,6 +57,8 @@ fun SharedTransitionScope.TimerScreen(
     onAction: (TimerAction) -> Unit,
     onAddTopic: () -> Unit,
     onOpenTopicSettings: () -> Unit,
+    thisWeekFocusTime: Long = 0L,
+    weeklyFocusGoal: Long = 0L,
     modifier: Modifier = Modifier
 ) {
     val navigator = rememberSupportingPaneScaffoldNavigator(
@@ -79,6 +81,8 @@ fun SharedTransitionScope.TimerScreen(
                         onAction = onAction,
                         onAddTopic = onAddTopic,
                         onOpenTopicSettings = onOpenTopicSettings,
+                        thisWeekFocusTime = thisWeekFocusTime,
+                        weeklyFocusGoal = weeklyFocusGoal,
                         modifier = modifier
                     )
                 }

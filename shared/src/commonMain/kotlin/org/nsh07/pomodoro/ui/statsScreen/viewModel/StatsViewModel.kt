@@ -127,6 +127,14 @@ class StatsViewModel(
             initialValue = null
         )
 
+    val thisWeekStat = statRepository
+        .getThisWeekStat()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
     val allTimeTotalFocus = statRepository
         .getAllTimeTotalFocusTime()
         .stateIn(

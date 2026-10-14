@@ -127,7 +127,7 @@ fun SharedTransitionScope.AlwaysOnDisplay(
     var xIncrement by remember { mutableIntStateOf(2) }
     var yIncrement by remember { mutableIntStateOf(2) }
 
-    LaunchedEffect(timerState.timeStr[1]) { // Increment position every minute
+    LaunchedEffect(timerState.timeStr.dropLast(3)) { // Increment position every minute
         if (sharedElementTransitionComplete && windowInfo.containerSize.width > 0 && windowInfo.containerSize.height > 0) {
             if (windowInfo.containerSize.width - elementSize - margin < x + xIncrement || x + xIncrement < margin)
                 xIncrement = -xIncrement
@@ -202,7 +202,11 @@ fun SharedTransitionScope.AlwaysOnDisplay(
             }
 
             val clockFontSize = if (!timerState.infiniteFocus)
-                if (timerState.timeStr.length < 6) 56.sp else 52.sp
+                when {
+                    timerState.timeStr.length >= 8 -> 42.sp
+                    timerState.timeStr.length < 6 -> 56.sp
+                    else -> 52.sp
+                }
             else 78.sp
 
             Text(

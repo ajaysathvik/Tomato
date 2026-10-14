@@ -32,5 +32,6 @@ enum class SettingsKey(val key: String) {
     FOCUS_GOAL("focus_goal"),
     VIBRATION_ON_DURATION("vibration_on_duration"),
     VIBRATION_OFF_DURATION("vibration_off_duration"),
-    VIBRATION_AMPLITUDE("vibration_amplitude")
+    VIBRATION_AMPLITUDE("vibration_amplitude"),
+    SHOW_HOURS_FORMAT("show_hours_format")
 }

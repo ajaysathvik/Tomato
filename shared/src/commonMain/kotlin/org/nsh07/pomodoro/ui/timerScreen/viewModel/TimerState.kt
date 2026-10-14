@@ -43,7 +43,7 @@ data class TimerState(
         get() = timerRunning ||
                 timerMode != TimerMode.FOCUS ||
                 currentFocusCount != 1 ||
-                timeStr != millisecondsToStr(if (infiniteFocus) 0 else totalTime)
+                timeStr != millisecondsToStr(if (infiniteFocus) 0 else totalTime, forceHours = timeStr.length > 5)
 }
 
 enum class TimerMode {

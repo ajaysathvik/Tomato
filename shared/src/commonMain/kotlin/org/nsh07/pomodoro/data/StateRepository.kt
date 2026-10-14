@@ -181,6 +181,11 @@ class StateRepository(
                 "custom_window_decor",
                 defaults.customWindowDecor
             )
+        val showHoursFormat = preferenceRepository.getBooleanPreference("show_hours_format")
+            ?: preferenceRepository.saveBooleanPreference(
+                "show_hours_format",
+                defaults.showHoursFormat
+            )
 
         settingsState.update { currentState ->
             currentState.copy(
@@ -198,7 +203,8 @@ class StateRepository(
                 vibrationOnDuration = vibrationOnDuration,
                 vibrationOffDuration = vibrationOffDuration,
                 vibrationAmplitude = vibrationAmplitude,
-                customWindowDecor = customWindowDecor
+                customWindowDecor = customWindowDecor,
+                showHoursFormat = showHoursFormat
             )
         }
 
@@ -221,18 +227,28 @@ class StateRepository(
         if (topic.id != previous.id || !topic.hasSameIntervals(previous)) refreshTimer(topic)
     }
 
+    fun updateTimerFormat() {
+        val currentState = timerState.value
+        if (currentState.sessionActive || currentState.infiniteFocus) return
+        refreshTimer(currentTopic.value)
+    }
+
     private fun refreshTimer(topic: Topic) {
         val currentState = timerState.value
         if (currentState.sessionActive || currentState.infiniteFocus) return
 
+        val forceHours = settingsState.value.showHoursFormat || topic.focusTime >= 3600000L
         time.value = topic.focusTime
         timerState.update {
             it.copy(
                 timerMode = TimerMode.FOCUS,
-                timeStr = millisecondsToStr(topic.focusTime),
+                timeStr = millisecondsToStr(topic.focusTime, forceHours = forceHours),
                 totalTime = topic.focusTime,
                 nextTimerMode = if (topic.sessionLength > 1) TimerMode.SHORT_BREAK else TimerMode.LONG_BREAK,
-                nextTimeStr = millisecondsToStr(if (topic.sessionLength > 1) topic.shortBreakTime else topic.longBreakTime),
+                nextTimeStr = millisecondsToStr(
+                    if (topic.sessionLength > 1) topic.shortBreakTime else topic.longBreakTime,
+                    forceHours = settingsState.value.showHoursFormat || (if (topic.sessionLength > 1) topic.shortBreakTime else topic.longBreakTime) >= 3600000L
+                ),
                 currentFocusCount = 1,
                 totalFocusCount = topic.sessionLength
             )

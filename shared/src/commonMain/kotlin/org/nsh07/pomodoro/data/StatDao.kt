@@ -152,6 +152,24 @@ interface StatDao {
             SUM(focusTimeQ4) as focusTimeQ4,
             SUM(breakTime) as breakTime
         FROM stat
+        WHERE date >= :startDate AND date <= :endDate
+        GROUP BY date
+        ORDER BY date ASC
+        """
+    )
+    fun getStatsBetween(startDate: LocalDate, endDate: LocalDate): Flow<List<Stat>>
+
+    @Query(
+        """
+        SELECT
+            date,
+            -1 as topicId,
+            SUM(focusTimeQ1) as focusTimeQ1,
+            SUM(focusTimeQ2) as focusTimeQ2,
+            SUM(focusTimeQ3) as focusTimeQ3,
+            SUM(focusTimeQ4) as focusTimeQ4,
+            SUM(breakTime) as breakTime
+        FROM stat
         GROUP BY date
         ORDER BY date DESC
         LIMIT :n

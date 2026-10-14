@@ -87,10 +87,6 @@ fun ApplicationScope.AppWindow(
             )
         }
     ) {
-        if (isTraySupported) {
-            AppSystemTray()
-        }
-
         if (windowVisible) {
             key(settingsState.customWindowDecor) {
                 Window(
@@ -160,6 +156,10 @@ fun ApplicationScope.AppWindow(
                     }
                 }
             }
+        }
+
+        if (isTraySupported) {
+            AppSystemTray()
         }
     }
 }

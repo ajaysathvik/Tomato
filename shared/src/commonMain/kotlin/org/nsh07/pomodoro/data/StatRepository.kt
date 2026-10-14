@@ -19,6 +19,7 @@ package org.nsh07.pomodoro.data
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.nsh07.pomodoro.utils.androidSdkVersionAtLeast
 import java.time.LocalDate
@@ -39,6 +40,8 @@ interface StatRepository {
     suspend fun addBreakTime(topicId: Long, breakTime: Long)
 
     fun getTodayStat(): Flow<Stat?>
+
+    fun getThisWeekStat(): Flow<Stat?>
 
     fun getLastNDaysStats(n: Int): Flow<List<Stat>>
 
@@ -133,6 +136,27 @@ class AppStatRepository(
     override fun getTodayStat(): Flow<Stat?> {
         val currentDate = LocalDate.now()
         return statDao.getStat(currentDate)
+    }
+
+    override fun getThisWeekStat(): Flow<Stat?> {
+        val today = LocalDate.now()
+        val daysSinceSunday = (today.dayOfWeek.value % 7).toLong()
+        val startOfWeek = today.minusDays(daysSinceSunday)
+        return statDao.getStatsBetween(startOfWeek, today).map { list ->
+            if (list.isEmpty()) {
+                null
+            } else {
+                Stat(
+                    date = today,
+                    topicId = Stat.MERGED_TOPIC_ID,
+                    focusTimeQ1 = list.sumOf { it.focusTimeQ1 },
+                    focusTimeQ2 = list.sumOf { it.focusTimeQ2 },
+                    focusTimeQ3 = list.sumOf { it.focusTimeQ3 },
+                    focusTimeQ4 = list.sumOf { it.focusTimeQ4 },
+                    breakTime = list.sumOf { it.breakTime }
+                )
+            }
+        }
     }
 
     override fun getLastNDaysStats(n: Int): Flow<List<Stat>> =

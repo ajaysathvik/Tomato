@@ -236,7 +236,7 @@ fun SharedTransitionScope.LastWeekScreen(
                                 context.model.extraStore[xLabelKey][x.toInt()]
                             }
                         },
-                        goal = goal,
+                        goal = if (goal > 0) goal / 7L else 0L,
                         zoomState = zoomState,
                         scrollState = scrollState,
                         modifier = Modifier

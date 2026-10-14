@@ -44,4 +44,5 @@ data class SettingsState(
     val alarmSoundUri: String? = getDefaultAlarmTone(),
 
     val customWindowDecor: Boolean = currentOS != OS.WINDOWS,
+    val showHoursFormat: Boolean = false
 )

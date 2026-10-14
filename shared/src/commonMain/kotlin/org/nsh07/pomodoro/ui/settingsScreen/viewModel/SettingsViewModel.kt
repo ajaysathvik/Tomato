@@ -51,6 +51,7 @@ import org.nsh07.pomodoro.data.TopicShape
 import org.nsh07.pomodoro.service.TimerHelper
 import org.nsh07.pomodoro.ui.Screen
 import org.nsh07.pomodoro.ui.settingsScreen.components.MinuteInputs
+import org.nsh07.pomodoro.ui.settingsScreen.components.focusToMillisOrNull
 import org.nsh07.pomodoro.ui.settingsScreen.components.minutesToMillisOrNull
 import org.nsh07.pomodoro.ui.timerScreen.viewModel.TimerAction
 import org.nsh07.pomodoro.utils.logError
@@ -151,6 +152,7 @@ class SettingsViewModel(
 
             is SettingsAction.SaveAutostartNextSession -> saveAutostartNextSession(action.enabled)
             is SettingsAction.SaveSecureAod -> saveSetting(SettingsKey.SECURE_AOD, action.enabled)
+            is SettingsAction.SaveShowHoursFormat -> saveSetting(SettingsKey.SHOW_HOURS_FORMAT, action.enabled)
             is SettingsAction.SaveColorScheme ->
                 saveSetting(SettingsKey.COLOR_SCHEME, action.color)
 
@@ -222,7 +224,10 @@ class SettingsViewModel(
 
     private fun showTopic(topic: Topic) {
         _editingTopic.update { topic }
-        minuteInputs = MinuteInputs(topic)
+        minuteInputs = MinuteInputs(
+            topic,
+            isHoursMode = _settingsState.value.showHoursFormat || topic.focusTime >= 60 * 60 * 1000L
+        )
         sessionsSliderState.value = topic.sessionLength.toFloat()
     }
 
@@ -311,7 +316,7 @@ class SettingsViewModel(
     private suspend fun saveMinutes(minutes: MinuteInputs) {
         editTopic {
             it.copy(
-                focusTime = minutes.focus.minutesToMillisOrNull() ?: it.focusTime,
+                focusTime = minutes.focusToMillisOrNull() ?: it.focusTime,
                 shortBreakTime = minutes.shortBreak.minutesToMillisOrNull() ?: it.shortBreakTime,
                 longBreakTime = minutes.longBreak.minutesToMillisOrNull() ?: it.longBreakTime
             )
@@ -374,10 +379,14 @@ class SettingsViewModel(
                     SettingsKey.SINGLE_PROGRESS_BAR -> currentState.copy(singleProgressBar = value)
                     SettingsKey.SECURE_AOD -> currentState.copy(secureAod = value)
                     SettingsKey.CUSTOM_WINDOW_DECOR -> currentState.copy(customWindowDecor = value)
+                    SettingsKey.SHOW_HOURS_FORMAT -> currentState.copy(showHoursFormat = value)
                     else -> currentState
                 }
             }
             preferenceRepository.saveBooleanPreference(key.key, value)
+            if (key == SettingsKey.SHOW_HOURS_FORMAT) {
+                stateRepository.updateTimerFormat()
+            }
         }
     }
 

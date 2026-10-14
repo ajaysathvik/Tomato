@@ -59,6 +59,14 @@ class TimerViewModel(
         (uiState.totalTime.toFloat() - remainingTime) / uiState.totalTime
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
 
+    val thisWeekStat = statRepository
+        .getThisWeekStat()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val topicIds = topicRepository.getTopicIds()
