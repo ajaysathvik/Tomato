@@ -112,7 +112,7 @@ class TimerManager(
         if (stored.startTime > now || stored.pauseTime > now) return
 
         val topic = stateRepository.currentTopic.value
-        cycles = stored.cycles.coerceIn(0, topic.sessionLength * 2 - 1)
+        cycles = stored.cycles.coerceIn(0, (topic.sessionLength - 1).coerceAtLeast(0))
         startTime = stored.startTime
         pauseTime = stored.pauseTime
         pauseDuration = stored.pauseDuration
@@ -433,11 +433,11 @@ class TimerManager(
 
         onStart()
 
-        cycles = (cycles + 1) % (currentTopic.sessionLength * 2)
+        cycles = (cycles + 1) % currentTopic.sessionLength.coerceAtLeast(1)
 
         val infiniteLabel = getString(Res.string.infinite)
 
-        if (_timerState.value.timerRunning) setDoNotDisturb(cycles % 2 == 0)
+        if (_timerState.value.timerRunning) setDoNotDisturb(true)
 
         _timerState.update { intervalStateOf(it, currentTopic, infiniteLabel) }
         time = _timerState.value.totalTime
@@ -460,36 +460,20 @@ class TimerManager(
         val infiniteFocus = state.infiniteFocus
         val showHours = stateRepository.settingsState.value.showHoursFormat
 
-        return if (cycles % 2 == 0) {
-            val newTime = if (!infiniteFocus) topic.focusTime else Long.MAX_VALUE
-            val long = cycles == (topic.sessionLength - 1) * 2
-            val forceHours = showHours || (!infiniteFocus && newTime >= 3600000L)
+        val newTime = if (!infiniteFocus) topic.focusTime else Long.MAX_VALUE
+        val forceHours = showHours || (!infiniteFocus && newTime >= 3600000L)
 
-            state.copy(
-                timerMode = TimerMode.FOCUS,
-                timeStr = if (!infiniteFocus) millisecondsToStr(newTime, forceHours = forceHours)
-                else millisecondsToStr(0, forceHours = showHours),
-                totalTime = newTime,
-                nextTimerMode = if (long) TimerMode.LONG_BREAK else TimerMode.SHORT_BREAK,
-                nextTimeStr = if (long) millisecondsToStr(topic.longBreakTime, forceHours = showHours || topic.longBreakTime >= 3600000L)
-                else millisecondsToStr(topic.shortBreakTime, forceHours = showHours || topic.shortBreakTime >= 3600000L),
-                currentFocusCount = cycles / 2 + 1,
-                totalFocusCount = topic.sessionLength
-            )
-        } else {
-            val long = cycles == (topic.sessionLength * 2) - 1
-            val newTime = if (long) topic.longBreakTime else topic.shortBreakTime
-            val forceHours = showHours || newTime >= 3600000L
-
-            state.copy(
-                timerMode = if (long) TimerMode.LONG_BREAK else TimerMode.SHORT_BREAK,
-                timeStr = millisecondsToStr(newTime, forceHours = forceHours),
-                totalTime = newTime,
-                nextTimerMode = TimerMode.FOCUS,
-                nextTimeStr = if (!infiniteFocus) millisecondsToStr(topic.focusTime, forceHours = showHours || topic.focusTime >= 3600000L)
-                else infiniteLabel
-            )
-        }
+        return state.copy(
+            timerMode = TimerMode.FOCUS,
+            timeStr = if (!infiniteFocus) millisecondsToStr(newTime, forceHours = forceHours)
+            else millisecondsToStr(0, forceHours = showHours),
+            totalTime = newTime,
+            nextTimerMode = TimerMode.FOCUS,
+            nextTimeStr = if (!infiniteFocus) millisecondsToStr(topic.focusTime, forceHours = forceHours)
+            else infiniteLabel,
+            currentFocusCount = (cycles % topic.sessionLength.coerceAtLeast(1)) + 1,
+            totalFocusCount = topic.sessionLength
+        )
     }
 
     /**

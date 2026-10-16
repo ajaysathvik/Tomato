@@ -246,11 +246,8 @@ class StateRepository(
                 timerMode = TimerMode.FOCUS,
                 timeStr = millisecondsToStr(topic.focusTime, forceHours = forceHours),
                 totalTime = topic.focusTime,
-                nextTimerMode = if (topic.sessionLength > 1) TimerMode.SHORT_BREAK else TimerMode.LONG_BREAK,
-                nextTimeStr = millisecondsToStr(
-                    if (topic.sessionLength > 1) topic.shortBreakTime else topic.longBreakTime,
-                    forceHours = settingsState.value.showHoursFormat || (if (topic.sessionLength > 1) topic.shortBreakTime else topic.longBreakTime) >= 3600000L
-                ),
+                nextTimerMode = TimerMode.FOCUS,
+                nextTimeStr = millisecondsToStr(topic.focusTime, forceHours = forceHours),
                 currentFocusCount = 1,
                 totalFocusCount = topic.sessionLength
             )

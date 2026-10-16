@@ -27,8 +27,8 @@ data class TimerState(
     val totalTime: Long = 25 * 60 * 1000,
     /** Whether the interval is counting down. Independent of [sessionActive]. */
     val timerRunning: Boolean = false,
-    val nextTimerMode: TimerMode = TimerMode.SHORT_BREAK,
-    val nextTimeStr: String = "05:00",
+    val nextTimerMode: TimerMode = TimerMode.FOCUS,
+    val nextTimeStr: String = "25:00",
     val showBrandTitle: Boolean = true,
     val currentFocusCount: Int = 1,
     val totalFocusCount: Int = 4,

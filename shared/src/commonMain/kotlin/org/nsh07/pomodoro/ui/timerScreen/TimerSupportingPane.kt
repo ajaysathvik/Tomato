@@ -51,9 +51,7 @@ import tomato.shared.generated.resources.Res
 import tomato.shared.generated.resources.check_circle_40dp
 import tomato.shared.generated.resources.focus
 import tomato.shared.generated.resources.in_progress_40dp
-import tomato.shared.generated.resources.long_break
 import tomato.shared.generated.resources.not_started_40dp
-import tomato.shared.generated.resources.short_break
 import tomato.shared.generated.resources.up_next
 
 @Composable
@@ -94,7 +92,7 @@ fun TimerSupportingPane(
                     onClick = {},
                     enabled = it + 1 >= timerState.currentFocusCount,
                     selected = currentSession && isFocus,
-                    shapes = segmentedListItemShapes(0, 2),
+                    shapes = segmentedListItemShapes(0, 1),
                     colors = listItemColors,
                     leadingContent = {
                         AnimatedContent(
@@ -129,53 +127,6 @@ fun TimerSupportingPane(
                 ) {
                     Text(
                         stringResource(Res.string.focus),
-                        maxLines = 1
-                    )
-                }
-
-                SegmentedListItem(
-                    onClick = {},
-                    enabled = it + 1 >= timerState.currentFocusCount,
-                    selected = currentSession && !isFocus,
-                    shapes = segmentedListItemShapes(1, 2),
-                    colors = listItemColors,
-                    leadingContent = {
-                        AnimatedContent(
-                            if (currentSession && !isFocus) 1
-                            else if (it + 1 < timerState.currentFocusCount) 2
-                            else 3
-                        ) { show ->
-                            when (show) {
-                                1 -> Icon(
-                                    painterResource(Res.drawable.in_progress_40dp),
-                                    null
-                                )
-
-                                2 -> Icon(
-                                    painterResource(Res.drawable.check_circle_40dp),
-                                    null
-                                )
-
-                                else -> Icon(
-                                    painterResource(Res.drawable.not_started_40dp),
-                                    null
-                                )
-                            }
-                        }
-                    },
-                    supportingContent = {
-                        Text(
-                            if (it != timerState.totalFocusCount - 1) millisecondsToStr(
-                                currentTopic.shortBreakTime
-                            )
-                            else millisecondsToStr(currentTopic.longBreakTime),
-                            maxLines = 1
-                        )
-                    }
-                ) {
-                    Text(
-                        if (it != timerState.totalFocusCount - 1) stringResource(Res.string.short_break)
-                        else stringResource(Res.string.long_break),
                         maxLines = 1
                     )
                 }

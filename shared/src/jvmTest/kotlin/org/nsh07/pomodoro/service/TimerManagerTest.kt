@@ -171,8 +171,8 @@ class TimerManagerTest {
         clock += 10 * MINUTE
         timerManager.saveTimeToDb()
 
-        assertEquals(40 * MINUTE, statRepository.focusTime)
-        assertEquals(4 * MINUTE, statRepository.breakTime)
+        assertEquals(44 * MINUTE, statRepository.focusTime)
+        assertEquals(0L, statRepository.breakTime)
     }
 
     /** Regression test for issue #299, with the interval switch interrupted halfway */
@@ -272,7 +272,7 @@ class TimerManagerTest {
         clock += topic.focusTime + 1
 
         assertTrue(timerManager.expire(), "the alarm did not end the interval")
-        assertEquals(TimerMode.SHORT_BREAK, stateRepository.timerState.value.timerMode)
+        assertEquals(TimerMode.FOCUS, stateRepository.timerState.value.timerMode)
         assertFalse(stateRepository.timerState.value.timerRunning)
         assertEquals(topic.focusTime, statRepository.focusTime)
         assertNull(scheduledExpiry)
@@ -284,7 +284,7 @@ class TimerManagerTest {
         clock += topic.focusTime
 
         assertTrue(timerManager.expire())
-        assertEquals(TimerMode.SHORT_BREAK, stateRepository.timerState.value.timerMode)
+        assertEquals(TimerMode.FOCUS, stateRepository.timerState.value.timerMode)
     }
 
     @Test
@@ -319,7 +319,7 @@ class TimerManagerTest {
         assertFalse(timerManager.expire(), "the interval expired a second time")
 
         // A second advance would have moved on to the next focus interval
-        assertEquals(TimerMode.SHORT_BREAK, stateRepository.timerState.value.timerMode)
+        assertEquals(TimerMode.FOCUS, stateRepository.timerState.value.timerMode)
         assertEquals(topic.focusTime, statRepository.focusTime)
         assertEquals(0L, statRepository.breakTime)
     }
@@ -328,15 +328,15 @@ class TimerManagerTest {
     fun `a session outlives the process that started it`() = runBlocking {
         timerManager.toggle()
         clock += 10 * MINUTE
-        timerManager.skip() // focus -> short break, still running
+        timerManager.skip() // focus 1 -> focus 2, still running
         clock += 2 * MINUTE
 
         val restored = startProcess()
 
-        assertEquals(TimerMode.SHORT_BREAK, stateRepository.timerState.value.timerMode)
+        assertEquals(TimerMode.FOCUS, stateRepository.timerState.value.timerMode)
         assertTrue(stateRepository.timerState.value.timerRunning)
         assertEquals(1, restored.cycles)
-        assertEquals(topic.shortBreakTime - 2 * MINUTE, stateRepository.time.value)
+        assertEquals(topic.focusTime - 2 * MINUTE, stateRepository.time.value)
     }
 
     @Test
@@ -359,14 +359,14 @@ class TimerManagerTest {
     @Test
     fun `the expiry alarm ends an interval that outlived its process`() = runBlocking {
         timerManager.toggle()
-        timerManager.skip() // focus -> short break, still running
-        clock += topic.shortBreakTime + 1
+        timerManager.skip() // focus 1 -> focus 2, still running
+        clock += topic.focusTime + 1
 
         val restored = startProcess()
 
         assertTrue(restored.expire(), "the alarm did not end the break")
         assertEquals(TimerMode.FOCUS, stateRepository.timerState.value.timerMode)
-        assertEquals(2, stateRepository.timerState.value.currentFocusCount)
+        assertEquals(3, stateRepository.timerState.value.currentFocusCount)
         assertFalse(stateRepository.timerState.value.timerRunning)
     }
 
