@@ -149,7 +149,6 @@ import tomato.shared.generated.resources.timer_session_count
 import tomato.shared.generated.resources.timer_settings_reset_info
 import tomato.shared.generated.resources.topic_settings
 import tomato.shared.generated.resources.undo
-import tomato.shared.generated.resources.up_next
 import tomato.shared.generated.resources.hours_and_minutes_format
 import tomato.shared.generated.resources.this_week
 import tomato.shared.generated.resources.today
@@ -800,68 +799,7 @@ fun SharedTransitionScope.TimerMainPane(
 
             item { Spacer(Modifier.height(32.dp)) }
 
-            if (!widthExpanded)
-                item {
-                    Column(horizontalAlignment = CenterHorizontally) {
-                        Text(
-                            stringResource(Res.string.up_next),
-                            style = typography.titleSmall
-                        )
-                        AnimatedContent(
-                            timerState.nextTimeStr,
-                            transitionSpec = {
-                                slideInVertically(
-                                    animationSpec = motionScheme.defaultSpatialSpec(),
-                                    initialOffsetY = { (-it * 1.25).toInt() }
-                                ).togetherWith(
-                                    slideOutVertically(
-                                        animationSpec = motionScheme.defaultSpatialSpec(),
-                                        targetOffsetY = { (it * 1.25).toInt() }
-                                    )
-                                )
-                            }
-                        ) {
-                            Text(
-                                it,
-                                style = TextStyle(
-                                    fontFamily = typography.bodyLarge.fontFamily,
-                                    fontSize = 22.sp,
-                                    lineHeight = 28.sp,
-                                    color = if (timerState.nextTimerMode == TimerMode.FOCUS) colorScheme.primary else colorScheme.tertiary,
-                                    textAlign = TextAlign.Center
-                                ),
-                                modifier = Modifier.width(200.dp)
-                            )
-                        }
-                        AnimatedContent(
-                            timerState.nextTimerMode,
-                            transitionSpec = {
-                                slideInVertically(
-                                    animationSpec = motionScheme.defaultSpatialSpec(),
-                                    initialOffsetY = { (-it * 1.25).toInt() }
-                                ).togetherWith(
-                                    slideOutVertically(
-                                        animationSpec = motionScheme.defaultSpatialSpec(),
-                                        targetOffsetY = { (it * 1.25).toInt() }
-                                    )
-                                )
-                            }
-                        ) {
-                            Text(
-                                when (it) {
-                                    TimerMode.FOCUS -> stringResource(Res.string.focus)
-                                    TimerMode.SHORT_BREAK -> stringResource(Res.string.short_break)
-                                    else -> stringResource(Res.string.long_break)
-                                },
-                                style = typography.titleMediumEmphasized,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.width(200.dp)
-                            )
-                        }
-                    }
-                }
 
-            item { Spacer(Modifier.height(16.dp)) }
         }
     }
 }

@@ -86,7 +86,6 @@ import tomato.shared.generated.resources.auto_start_next_timer_desc
 import tomato.shared.generated.resources.autoplay
 import tomato.shared.generated.resources.check
 import tomato.shared.generated.resources.clear
-import tomato.shared.generated.resources.clocks
 import tomato.shared.generated.resources.delete
 import tomato.shared.generated.resources.delete_topic
 import tomato.shared.generated.resources.dnd
@@ -96,11 +95,7 @@ import tomato.shared.generated.resources.focus
 import tomato.shared.generated.resources.focus_hours
 import tomato.shared.generated.resources.focus_minutes
 import tomato.shared.generated.resources.info
-import tomato.shared.generated.resources.long_break
-import tomato.shared.generated.resources.session_length
-import tomato.shared.generated.resources.session_length_desc
 import tomato.shared.generated.resources.settings_infinite_focus_tip
-import tomato.shared.generated.resources.short_break
 import tomato.shared.generated.resources.style
 import tomato.shared.generated.resources.timer_settings_reset_info
 
@@ -275,8 +270,8 @@ fun TopicTimerProperties(
                     shape = RoundedCornerShape(
                         topStart = topListItemShape.topStart,
                         bottomStart = topListItemShape.topStart,
-                        topEnd = topListItemShape.bottomStart,
-                        bottomEnd = topListItemShape.bottomStart
+                        topEnd = middleListItemShape.topStart,
+                        bottomEnd = middleListItemShape.topStart
                     ),
                     maxDigits = 2,
                     placeholder = "0",
@@ -297,83 +292,21 @@ fun TopicTimerProperties(
                     minutes = minuteInputs.focus,
                     onMinutesChange = { onMinuteInputsChange(minuteInputs.copy(focus = it)) },
                     enabled = !topicRunning,
-                    shape = RoundedCornerShape(middleListItemShape.topStart),
-                    maxDigits = 3,
-                    placeholder = "0",
-                    isValid = minuteInputs.isValidFocusInput(),
-                    imeAction = ImeAction.Next
-                )
-            }
-            Spacer(Modifier.width(2.dp))
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    stringResource(Res.string.short_break),
-                    style = typography.titleSmallEmphasized
-                )
-                MinuteInputField(
-                    minutes = minuteInputs.shortBreak,
-                    onMinutesChange = { onMinuteInputsChange(minuteInputs.copy(shortBreak = it)) },
-                    enabled = !topicRunning,
-                    shape = RoundedCornerShape(middleListItemShape.topStart),
-                    imeAction = ImeAction.Next
-                )
-            }
-            Spacer(Modifier.width(2.dp))
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    stringResource(Res.string.long_break),
-                    style = typography.titleSmallEmphasized
-                )
-                MinuteInputField(
-                    minutes = minuteInputs.longBreak,
-                    onMinutesChange = { onMinuteInputsChange(minuteInputs.copy(longBreak = it)) },
-                    enabled = !topicRunning,
                     shape = RoundedCornerShape(
-                        topStart = bottomListItemShape.topStart,
-                        bottomStart = bottomListItemShape.topStart,
+                        topStart = middleListItemShape.topStart,
+                        bottomStart = middleListItemShape.topStart,
                         topEnd = bottomListItemShape.bottomStart,
                         bottomEnd = bottomListItemShape.bottomStart
                     ),
+                    maxDigits = 3,
+                    placeholder = "0",
+                    isValid = minuteInputs.isValidFocusInput(),
                     imeAction = ImeAction.Done
                 )
             }
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Column(Modifier.background(listItemColors.containerColor, topListItemShape)) {
-                ListItem(
-                    leadingContent = {
-                        Icon(painterResource(Res.drawable.clocks), null)
-                    },
-                    headlineContent = {
-                        Text(stringResource(Res.string.session_length))
-                    },
-                    supportingContent = {
-                        Text(
-                            stringResource(
-                                Res.string.session_length_desc,
-                                sessionsSliderState.value.toInt()
-                            )
-                        )
-                    },
-                    colors = listItemColors,
-                    modifier = Modifier.clip(cardShape)
-                )
-                SliderTickHaptics(sessionsSliderState)
-                Slider(
-                    state = sessionsSliderState,
-                    enabled = !topicRunning,
-                    modifier = Modifier
-                        .padding(start = (16 * 2 + 24).dp, end = 16.dp, bottom = 12.dp)
-                )
-            }
-
             val switchItems = remember(
                 autostartNextSession,
                 dndEnabled,
@@ -442,8 +375,8 @@ fun TopicTimerProperties(
                         )
                     },
                     shapes = segmentedListItemShapes(
-                        index + 1,
-                        switchItems.size + 1
+                        index,
+                        switchItems.size
                     ),
                     colors = listItemColors
                 )
