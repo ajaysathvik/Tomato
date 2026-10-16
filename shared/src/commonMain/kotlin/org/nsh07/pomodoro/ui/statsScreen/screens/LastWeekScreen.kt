@@ -91,6 +91,7 @@ import tomato.shared.generated.resources.focus_breakdown_desc
 import tomato.shared.generated.resources.focus_history
 import tomato.shared.generated.resources.focus_history_desc
 import tomato.shared.generated.resources.focus_per_day_avg
+import tomato.shared.generated.resources.this_week
 import tomato.shared.generated.resources.last_week
 import tomato.shared.generated.resources.more_info
 import tomato.shared.generated.resources.show_chart
@@ -143,7 +144,7 @@ fun SharedTransitionScope.LastWeekScreen(
                 windowInsets = topBarWindowInsets(),
                 title = {
                     Text(
-                        text = stringResource(Res.string.last_week),
+                        text = stringResource(Res.string.this_week),
                         fontFamily = LocalAppFonts.current.topBarTitle,
                         modifier = Modifier.sharedElement(
                             sharedContentState = this@LastWeekScreen

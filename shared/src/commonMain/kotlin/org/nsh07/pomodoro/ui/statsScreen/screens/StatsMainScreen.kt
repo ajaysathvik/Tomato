@@ -87,6 +87,7 @@ import tomato.shared.generated.resources.focus
 import tomato.shared.generated.resources.focus_per_day_avg
 import tomato.shared.generated.resources.last_month
 import tomato.shared.generated.resources.last_week
+import tomato.shared.generated.resources.this_week
 import tomato.shared.generated.resources.last_year
 import tomato.shared.generated.resources.lifetime
 import tomato.shared.generated.resources.query_stats
@@ -177,7 +178,7 @@ fun SharedTransitionScope.StatsMainScreen(
 
             item {
                 Text(
-                    stringResource(Res.string.last_week),
+                    stringResource(Res.string.this_week),
                     style = typography.titleLarge,
                     fontFamily = topBarTitleFont,
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -312,7 +313,7 @@ fun SharedTransitionScope.StatsMainScreen(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            stringResource(Res.string.last_week),
+                            stringResource(Res.string.this_week),
                             style = typography.titleLarge,
                             fontFamily = topBarTitleFont,
                             modifier = if (!widthExpanded) Modifier.sharedElement(

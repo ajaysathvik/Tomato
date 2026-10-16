@@ -31,7 +31,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -77,6 +79,11 @@ fun ApplicationScope.AppWindow(
 
     val customWindowDecorsEnabled = settingsState.customWindowDecor && !isMacOS
 
+    // Track whether the Window composable has been composed at least once.
+    // AppSystemTray calls painterResource() which requires Skiko's graphics backend
+    // to be initialized — that only happens after the first Window {} composition.
+    var graphicsReady by remember { mutableStateOf(false) }
+
     CompositionLocalProvider(
         LocalViewModelStoreOwner provides windowViewModelStoreOwner,
         LocalContentWindowInsets provides {
@@ -98,6 +105,8 @@ fun ApplicationScope.AppWindow(
                     transparent = customWindowDecorsEnabled,
                     alwaysOnTop = BuildKonfig.DEBUG
                 ) {
+                    // Signal that Skiko graphics backend is now initialized.
+                    graphicsReady = true
                     if (isMacOS && settingsState.customWindowDecor) {
                         window.rootPane.apply {
                             putClientProperty("apple.awt.fullWindowContent", true)
@@ -158,7 +167,7 @@ fun ApplicationScope.AppWindow(
             }
         }
 
-        if (isTraySupported) {
+        if (isTraySupported && graphicsReady) {
             AppSystemTray()
         }
     }

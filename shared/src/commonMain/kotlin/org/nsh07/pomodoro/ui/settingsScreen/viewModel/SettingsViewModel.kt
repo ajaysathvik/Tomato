@@ -224,10 +224,7 @@ class SettingsViewModel(
 
     private fun showTopic(topic: Topic) {
         _editingTopic.update { topic }
-        minuteInputs = MinuteInputs(
-            topic,
-            isHoursMode = _settingsState.value.showHoursFormat || topic.focusTime >= 60 * 60 * 1000L
-        )
+        minuteInputs = MinuteInputs(topic)
         sessionsSliderState.value = topic.sessionLength.toFloat()
     }
 

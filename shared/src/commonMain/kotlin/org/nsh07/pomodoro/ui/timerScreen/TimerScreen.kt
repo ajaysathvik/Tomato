@@ -57,6 +57,7 @@ fun SharedTransitionScope.TimerScreen(
     onAction: (TimerAction) -> Unit,
     onAddTopic: () -> Unit,
     onOpenTopicSettings: () -> Unit,
+    todayFocusTime: Long = 0L,
     thisWeekFocusTime: Long = 0L,
     weeklyFocusGoal: Long = 0L,
     modifier: Modifier = Modifier
@@ -81,6 +82,7 @@ fun SharedTransitionScope.TimerScreen(
                         onAction = onAction,
                         onAddTopic = onAddTopic,
                         onOpenTopicSettings = onOpenTopicSettings,
+                        todayFocusTime = todayFocusTime,
                         thisWeekFocusTime = thisWeekFocusTime,
                         weeklyFocusGoal = weeklyFocusGoal,
                         modifier = modifier

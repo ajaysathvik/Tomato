@@ -127,7 +127,7 @@ fun CreateTopicBottomSheet(
         topics.any { it.name.equals(trimmedName, true) }
     }
     val nameValid = trimmedName.isNotEmpty() && !nameTaken
-    val timesValid = minuteInputs.focus.isValidMinutesInput() &&
+    val timesValid = minuteInputs.isValidFocusInput() &&
             minuteInputs.shortBreak.isValidMinutesInput() &&
             minuteInputs.longBreak.isValidMinutesInput()
 
@@ -182,7 +182,7 @@ fun CreateTopicBottomSheet(
                                     name = trimmedName,
                                     color = color,
                                     shape = shape,
-                                    focusTime = minuteInputs.focus.minutesToMillisOrNull()
+                                    focusTime = minuteInputs.focusToMillisOrNull()
                                         ?: defaultTopic.focusTime,
                                     shortBreakTime = minuteInputs.shortBreak.minutesToMillisOrNull()
                                         ?: defaultTopic.shortBreakTime,

@@ -215,10 +215,12 @@ class StateRepository(
     }
 
     suspend fun setTopic(topic: Topic) {
-        if (_currentTopicId.value == topic.id) return
+        val previous = _currentTopic.value
         _currentTopicId.value = topic.id
         publishTopic(topic)
-        preferenceRepository.saveLongPreference(CURRENT_TOPIC_KEY, topic.id)
+        if (previous.id != topic.id) {
+            preferenceRepository.saveLongPreference(CURRENT_TOPIC_KEY, topic.id)
+        }
     }
 
     private fun publishTopic(topic: Topic) {

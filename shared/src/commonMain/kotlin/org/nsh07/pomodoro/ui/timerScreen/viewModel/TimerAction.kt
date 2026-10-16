@@ -23,6 +23,8 @@ sealed interface TimerAction {
     data class SkipTimer(val fromButton: Boolean) : TimerAction
     data class SetInfiniteFocus(val value: Boolean) : TimerAction
     data class SetTopic(val topic: Topic) : TimerAction
+    data class AdjustFocusTime(val deltaMillis: Long) : TimerAction
+    data class SetFocusTime(val focusTimeMillis: Long) : TimerAction
 
     data object ResetTimer : TimerAction
     data object UndoReset : TimerAction

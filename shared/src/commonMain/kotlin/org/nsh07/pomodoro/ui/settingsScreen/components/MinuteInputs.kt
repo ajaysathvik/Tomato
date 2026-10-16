@@ -31,18 +31,20 @@ data class MinuteInputs(
     val focusMinutes: String = ""
 ) {
     constructor(topic: Topic, isHoursMode: Boolean = false) : this(
-        focus = topic.focusTime.toMinutes(),
+        focus = if (topic.focusTime >= 3600000L) {
+            val rem = (topic.focusTime % 3600000L) / 60000L
+            if (rem > 0L) rem.toString() else ""
+        } else {
+            topic.focusTime.toMinutes()
+        },
         shortBreak = topic.shortBreakTime.toMinutes(),
         longBreak = topic.longBreakTime.toMinutes(),
-        isHoursMode = isHoursMode || topic.focusTime >= 60 * 60 * 1000L,
-        focusHours = if (isHoursMode || topic.focusTime >= 60 * 60 * 1000L) {
-            (topic.focusTime / (60 * 60 * 1000L)).let { if (it > 0) it.toString() else "" }
-        } else "",
-        focusMinutes = if (isHoursMode || topic.focusTime >= 60 * 60 * 1000L) {
-            ((topic.focusTime % (60 * 60 * 1000L)) / (60 * 1000L)).let {
-                if (it > 0 || topic.focusTime >= 60 * 60 * 1000L) it.toString() else ""
-            }
-        } else ""
+        isHoursMode = isHoursMode,
+        focusHours = if (topic.focusTime >= 3600000L) {
+            (topic.focusTime / 3600000L).toString()
+        } else {
+            ""
+        }
     )
 }
 
@@ -59,22 +61,14 @@ fun CharSequence.minutesToMillisOrNull(): Long? =
     if (isValidMinutesInput()) toString().toLong() * 60 * 1000 else null
 
 fun MinuteInputs.focusToMillisOrNull(): Long? {
-    return if (isHoursMode) {
-        val h = focusHours.toLongOrNull() ?: 0L
-        val m = focusMinutes.toLongOrNull() ?: 0L
-        val totalMs = (h * 60 + m) * 60 * 1000L
-        if (totalMs > 0) totalMs else null
-    } else {
-        focus.minutesToMillisOrNull()
-    }
+    val h = focusHours.toLongOrNull() ?: 0L
+    val m = focus.toLongOrNull() ?: 0L
+    val totalMinutes = h * 60L + m
+    return if (totalMinutes > 0L) totalMinutes * 60L * 1000L else null
 }
 
 fun MinuteInputs.isValidFocusInput(): Boolean {
-    return if (isHoursMode) {
-        val h = focusHours.toLongOrNull() ?: 0L
-        val m = focusMinutes.toLongOrNull() ?: 0L
-        (h * 60 + m) > 0L
-    } else {
-        focus.isValidMinutesInput()
-    }
+    val h = focusHours.toLongOrNull() ?: 0L
+    val m = focus.toLongOrNull() ?: 0L
+    return (h * 60L + m) > 0L
 }

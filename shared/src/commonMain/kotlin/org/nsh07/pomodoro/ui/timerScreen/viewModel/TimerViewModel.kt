@@ -59,6 +59,14 @@ class TimerViewModel(
         (uiState.totalTime.toFloat() - remainingTime) / uiState.totalTime
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
 
+    val todayStat = statRepository
+        .getTodayStat()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
     val thisWeekStat = statRepository
         .getThisWeekStat()
         .stateIn(
@@ -110,6 +118,32 @@ class TimerViewModel(
                 if (!timerState.value.sessionActive) {
                     viewModelScope.launch {
                         stateRepository.setTopic(action.topic)
+                        onAction(TimerAction.ResetTimer)
+                    }
+                }
+            }
+
+            is TimerAction.AdjustFocusTime -> {
+                val topic = currentTopic.value
+                val newFocus = (topic.focusTime + action.deltaMillis).coerceIn(60_000L, 24 * 3600_000L)
+                val updated = topic.copy(focusTime = newFocus)
+                viewModelScope.launch(Dispatchers.IO) {
+                    topicRepository.updateTopic(updated)
+                    stateRepository.setTopic(updated)
+                    if (!timerState.value.timerRunning) {
+                        onAction(TimerAction.ResetTimer)
+                    }
+                }
+            }
+
+            is TimerAction.SetFocusTime -> {
+                val topic = currentTopic.value
+                val newFocus = action.focusTimeMillis.coerceIn(60_000L, 24 * 3600_000L)
+                val updated = topic.copy(focusTime = newFocus)
+                viewModelScope.launch(Dispatchers.IO) {
+                    topicRepository.updateTopic(updated)
+                    stateRepository.setTopic(updated)
+                    if (!timerState.value.timerRunning) {
                         onAction(TimerAction.ResetTimer)
                     }
                 }

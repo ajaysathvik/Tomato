@@ -43,6 +43,8 @@ interface StatRepository {
 
     fun getThisWeekStat(): Flow<Stat?>
 
+    fun getThisWeekDailyStats(): Flow<List<Stat>>
+
     fun getLastNDaysStats(n: Int): Flow<List<Stat>>
 
     fun getLastNDaysAverageFocusTimes(n: Int): Flow<StatTime?>
@@ -142,7 +144,8 @@ class AppStatRepository(
         val today = LocalDate.now()
         val daysSinceSunday = (today.dayOfWeek.value % 7).toLong()
         val startOfWeek = today.minusDays(daysSinceSunday)
-        return statDao.getStatsBetween(startOfWeek, today).map { list ->
+        val endOfWeek = startOfWeek.plusDays(6)
+        return statDao.getStatsBetween(startOfWeek, endOfWeek).map { list ->
             if (list.isEmpty()) {
                 null
             } else {
@@ -154,6 +157,28 @@ class AppStatRepository(
                     focusTimeQ3 = list.sumOf { it.focusTimeQ3 },
                     focusTimeQ4 = list.sumOf { it.focusTimeQ4 },
                     breakTime = list.sumOf { it.breakTime }
+                )
+            }
+        }
+    }
+
+    override fun getThisWeekDailyStats(): Flow<List<Stat>> {
+        val today = LocalDate.now()
+        val daysSinceSunday = (today.dayOfWeek.value % 7).toLong()
+        val startOfWeek = today.minusDays(daysSinceSunday)
+        val endOfWeek = startOfWeek.plusDays(6)
+        return statDao.getStatsBetween(startOfWeek, endOfWeek).map { list ->
+            val statByDate = list.associateBy { it.date }
+            (0L..6L).map { dayOffset ->
+                val date = startOfWeek.plusDays(dayOffset)
+                statByDate[date] ?: Stat(
+                    date = date,
+                    topicId = Stat.MERGED_TOPIC_ID,
+                    focusTimeQ1 = 0,
+                    focusTimeQ2 = 0,
+                    focusTimeQ3 = 0,
+                    focusTimeQ4 = 0,
+                    breakTime = 0
                 )
             }
         }

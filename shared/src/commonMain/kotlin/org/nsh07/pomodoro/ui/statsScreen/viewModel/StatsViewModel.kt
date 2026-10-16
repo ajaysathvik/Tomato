@@ -143,7 +143,7 @@ class StatsViewModel(
             initialValue = null
         )
 
-    private val lastWeekStatsFlow = statRepository.getLastNDaysStats(7).filter { it.isNotEmpty() }
+    private val thisWeekStatsFlow = statRepository.getThisWeekDailyStats()
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
     private val lastMonthStatsFlow = statRepository.getLastNDaysStats(31).filter { it.isNotEmpty() }
         .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5000), replay = 1)
@@ -152,12 +152,11 @@ class StatsViewModel(
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            lastWeekStatsFlow.collect { list ->
-                val reversed = list.reversed()
-                val keys = reversed.map {
+            thisWeekStatsFlow.collect { list ->
+                val keys = list.map {
                     it.date.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.getDefault())
                 }
-                val values = reversed.map { it.totalFocusTime() }
+                val values = list.map { it.totalFocusTime() }
 
                 lastWeekChartProducer.runTransaction {
                     columnModel { series(values) }
@@ -205,9 +204,9 @@ class StatsViewModel(
         )
 
     val lastWeekFocusHistoryValues: StateFlow<List<Pair<String, List<Long>>>> =
-        lastWeekStatsFlow
-            .map { value ->
-                value.reversed().map {
+        thisWeekStatsFlow
+            .map { list ->
+                list.map {
                     Pair(
                         it.date.dayOfWeek.getDisplayName(
                             TextStyle.NARROW,
@@ -225,16 +224,16 @@ class StatsViewModel(
             )
 
     val lastWeekFocusBreakdownValues: StateFlow<Pair<List<Long>, Long>> =
-        statRepository.getLastNDaysAverageFocusTimes(7)
-            .map {
+        thisWeekStatsFlow
+            .map { list ->
                 Pair(
                     listOf(
-                        it?.focusTimeQ1 ?: 0L,
-                        it?.focusTimeQ2 ?: 0L,
-                        it?.focusTimeQ3 ?: 0L,
-                        it?.focusTimeQ4 ?: 0L
+                        list.sumOf { it.focusTimeQ1 } / 7L,
+                        list.sumOf { it.focusTimeQ2 } / 7L,
+                        list.sumOf { it.focusTimeQ3 } / 7L,
+                        list.sumOf { it.focusTimeQ4 } / 7L
                     ),
-                    it?.breakTime ?: 0L
+                    list.sumOf { it.breakTime } / 7L
                 )
             }
             .flowOn(Dispatchers.Default)

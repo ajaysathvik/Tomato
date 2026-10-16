@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -108,14 +110,12 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.nsh07.pomodoro.data.Topic
 import org.nsh07.pomodoro.ui.LocalIsPlus
+import org.nsh07.pomodoro.ui.performConfirm
 import org.nsh07.pomodoro.ui.performLongPress
 import org.nsh07.pomodoro.ui.performReject
+import org.nsh07.pomodoro.ui.performSegmentTick
 import org.nsh07.pomodoro.ui.performToggle
 import org.nsh07.pomodoro.ui.performVirtualKey
-import org.nsh07.pomodoro.ui.rememberRequestNotificationPermissionCallback
-import org.nsh07.pomodoro.ui.settingsScreen.screens.sampleTopics
-import org.nsh07.pomodoro.ui.theme.LocalAppFonts
-import org.nsh07.pomodoro.ui.theme.TomatoTheme
 import org.nsh07.pomodoro.ui.timerScreen.viewModel.TimerAction
 import org.nsh07.pomodoro.ui.timerScreen.viewModel.TimerMode
 import org.nsh07.pomodoro.ui.timerScreen.viewModel.TimerState
@@ -124,13 +124,16 @@ import org.nsh07.pomodoro.utils.androidSdkVersionAtLeast
 import tomato.shared.generated.resources.Res
 import tomato.shared.generated.resources.app_name
 import tomato.shared.generated.resources.app_name_plus
+import tomato.shared.generated.resources.cancel
 import tomato.shared.generated.resources.create_new_topic
 import tomato.shared.generated.resources.focus
 import tomato.shared.generated.resources.goto_settings
 import tomato.shared.generated.resources.infinite_focus
 import tomato.shared.generated.resources.label
 import tomato.shared.generated.resources.long_break
+import tomato.shared.generated.resources.monitoring
 import tomato.shared.generated.resources.new_label
+import tomato.shared.generated.resources.ok
 import tomato.shared.generated.resources.pause
 import tomato.shared.generated.resources.pause_large
 import tomato.shared.generated.resources.play
@@ -148,9 +151,14 @@ import tomato.shared.generated.resources.topic_settings
 import tomato.shared.generated.resources.undo
 import tomato.shared.generated.resources.up_next
 import tomato.shared.generated.resources.hours_and_minutes_format
-import tomato.shared.generated.resources.this_week_focus
-import tomato.shared.generated.resources.this_week_focus_with_goal
+import tomato.shared.generated.resources.this_week
+import tomato.shared.generated.resources.today
+import tomato.shared.generated.resources.view_day
 import org.nsh07.pomodoro.utils.millisecondsToHoursMinutes
+import org.nsh07.pomodoro.ui.rememberRequestNotificationPermissionCallback
+import org.nsh07.pomodoro.ui.settingsScreen.screens.sampleTopics
+import org.nsh07.pomodoro.ui.theme.LocalAppFonts
+import org.nsh07.pomodoro.ui.theme.TomatoTheme
 
 @Composable
 fun SharedTransitionScope.TimerMainPane(
@@ -162,6 +170,7 @@ fun SharedTransitionScope.TimerMainPane(
     onAction: (TimerAction) -> Unit,
     onAddTopic: () -> Unit,
     onOpenTopicSettings: () -> Unit,
+    todayFocusTime: Long = 0L,
     thisWeekFocusTime: Long = 0L,
     weeklyFocusGoal: Long = 0L,
     modifier: Modifier = Modifier
@@ -513,30 +522,91 @@ fun SharedTransitionScope.TimerMainPane(
                                         style = typography.titleLarge,
                                         color = colorScheme.outline
                                     )
-                                    val hmf = stringResource(Res.string.hours_and_minutes_format)
-                                    val formattedWeekTime = remember(thisWeekFocusTime, hmf) {
-                                        millisecondsToHoursMinutes(thisWeekFocusTime, hmf)
-                                    }
-                                    val weeklyText = if (weeklyFocusGoal > 0) {
-                                        val formattedGoal = remember(weeklyFocusGoal, hmf) {
-                                            millisecondsToHoursMinutes(weeklyFocusGoal, hmf)
-                                        }
-                                        stringResource(
-                                            Res.string.this_week_focus_with_goal,
-                                            formattedWeekTime,
-                                            formattedGoal
-                                        )
-                                    } else {
-                                        stringResource(
-                                            Res.string.this_week_focus,
-                                            formattedWeekTime
-                                        )
-                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(top = 16.dp, bottom = 4.dp)
+                            .fillMaxWidth()
+                    ) {
+                        val hmf = stringResource(Res.string.hours_and_minutes_format)
+                        val formattedTodayTime = remember(todayFocusTime, hmf) {
+                            millisecondsToHoursMinutes(todayFocusTime, hmf)
+                        }
+                        val formattedWeekTime = remember(thisWeekFocusTime, hmf) {
+                            millisecondsToHoursMinutes(thisWeekFocusTime, hmf)
+                        }
+                        val weekDisplayText = remember(formattedWeekTime, weeklyFocusGoal, hmf) {
+                            if (weeklyFocusGoal > 0) {
+                                val formattedGoal = millisecondsToHoursMinutes(weeklyFocusGoal, hmf)
+                                "$formattedWeekTime / $formattedGoal"
+                            } else {
+                                formattedWeekTime
+                            }
+                        }
+
+                        Surface(
+                            color = colorScheme.surfaceContainerHigh,
+                            shape = shapes.large,
+                            modifier = Modifier.clip(shapes.large)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.view_day),
+                                    contentDescription = null,
+                                    tint = colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Column {
                                     Text(
-                                        weeklyText,
-                                        fontFamily = typography.bodyLarge.fontFamily,
-                                        style = typography.labelMedium,
-                                        color = colorScheme.outline.copy(alpha = 0.8f)
+                                        text = stringResource(Res.string.today),
+                                        style = typography.labelSmall,
+                                        color = colorScheme.outline
+                                    )
+                                    Text(
+                                        text = formattedTodayTime,
+                                        style = typography.titleMedium,
+                                        color = colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+
+                        Surface(
+                            color = colorScheme.surfaceContainerHigh,
+                            shape = shapes.large,
+                            modifier = Modifier.clip(shapes.large)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.monitoring),
+                                    contentDescription = null,
+                                    tint = colorScheme.secondary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Column {
+                                    Text(
+                                        text = stringResource(Res.string.this_week),
+                                        style = typography.labelSmall,
+                                        color = colorScheme.outline
+                                    )
+                                    Text(
+                                        text = weekDisplayText,
+                                        style = typography.titleMedium,
+                                        color = colorScheme.onSurface
                                     )
                                 }
                             }

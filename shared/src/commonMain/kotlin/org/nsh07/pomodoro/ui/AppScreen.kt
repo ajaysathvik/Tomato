@@ -339,6 +339,7 @@ fun AppScreen(
                                 )
                             }
 
+                            val todayStat by timerViewModel.todayStat.collectAsStateWithLifecycle()
                             val thisWeekStat by timerViewModel.thisWeekStat.collectAsStateWithLifecycle()
 
                             TimerScreen(
@@ -347,6 +348,7 @@ fun AppScreen(
                                 currentTopic = currentTopic,
                                 contentPadding = contentPadding,
                                 progress = { progress },
+                                todayFocusTime = todayStat?.totalFocusTime() ?: 0L,
                                 thisWeekFocusTime = thisWeekStat?.totalFocusTime() ?: 0L,
                                 weeklyFocusGoal = settingsState.focusGoal,
                                 onAction = timerViewModel::onAction,
